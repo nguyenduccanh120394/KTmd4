@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>List</title>
+    <script type="text/javascript">
+        function loadPage(){
+          location.reload();
+        }
+        function searchData(){
+          let key=$('#key').val()
+            $.ajax({
+                type:"GET",
+                url:"http://localhost:8080/api/name?key="+key,
+                success:function (data){
+                  let str =`<thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Country</th>
+                                <th>Area</th>
+                                <th>Population</th>
+                                <th>GDA</th>
+                                <th>Description</th>
+                                <th colspan="2">Management</th>
+                            </tr>
+                                </thead>`
+                  for (let i = 0; i < data.length; i++) {
+                    str+=`
+                            <tr onclick="info(${data[i].id})">
+                                <td>${data[i].id}</td>
+                                <td>${data[i].name}</td>
+                                <td>${data[i].country}</td>
+                                <td>${data[i].area}</td>
+                                <td>${data[i].population}</td>
+                                <td>${data[i].gpa}</td>
+                                <td>${data[i].description}</td>
+                                <td><a class="btn btn-info btn-sm"onclick="showFormEdit(${data[i].id})">Edit</a></td>
+                                <td><a class="btn btn-danger btn-sm" onclick="deleteData(${data[i].id})">Delete</a></td>
+                            </tr> `
+                    document.getElementById('listCity').innerHTML=str;
+                  }
+                }
+            });
+        }
+        function loadData(){
+          $.ajax({
+            type: "GET",
+            url: "http://localhost:8080/api/cities",
+            success:function (data){
+              console.log(data)
+              listCity(data)
+            }
+          });
+        }
+        function deleteData(id){
+          let del=confirm("Bạn chắc chắn muốn xóa")
+          if (del==true){
+            $.ajax({
+              type:"DELETE",
+              url:"http://localhost:8080/api/"+id,
+              success:function (data){
+                console.log(data);
+                loadData();
+              }
+            });
+          }else {}
+
+        }
+        function showFormEdit(id){
+              alert(id)
+          $.ajax({
+            type:"GET",
+            url:"http://localhost:8080/api/city/"+id,
+            success:function (data){
+              let str=`<form>
+                        <div class="mb-3">
+                          <label for="name" class="form-label">Name</label>
+                          <input type="text" class="form-control" id="name" aria-describedby="emailHelp" value="${data.name}">
+                        </div>
+                        <div class="mb-3">
+                          <label for="gpa" class="form-label">GPA</label>
+                          <input type="text" class="form-control" id="gpa" aria-describedby="emailHelp" value="${data.gpa}">
+                        </div>
+                        <div class="mb-3">
+                          <label for="area" class="form-label">Area</label>
+                          <input type="text" class="form-control" id="area" aria-describedby="emailHelp" value="${data.area}">
+                        </div>
+                        <div class="mb-3">
+                          <label for="country" class="form-label">Country</label>
+                          <input type="text" class="form-control" id="country" aria-describedby="emailHelp" value="${data.country}">
+                        </div>
+                        <div class="mb-3">
+                          <label for="description" class="form-label">Description</label>
+                          <input type="text" class="form-control" id="description" aria-describedby="emailHelp" value="${data.description}">
+                        </div>
+                        <div class="mb-3">
+                          <label for="population" class="form-label">Population</label>
+                          <input type="text" class="form-control" id="population" aria-describedby="emailHelp" value="${data.population}">
+                        </div>
+                        <a type="submit" class="btn btn-primary" onclick="edit(${data.id})">Save</a>
+                      </form>`
+              document.getElementById('listCity').innerHTML=str;
+            }
+          })
+        }
+        function add(){
+          let newname=$('#newname').val()
+          let newgpa=$('#newgpa').val()
+          let newarea=$('#newarea').val()
+          let newcountry=$('#newcountry').val()
+          let newdescription=$('#newdescription').val()
+          let newpopulation=$('#newpopulation').val()
+          let newCity={
+            "name": newname,
+            "country": newcountry,
+            "area": newarea,
+            "population": newpopulation,
+            "description": newdescription,
+            "gpa": newgpa
+          }
+          $.ajax({
+            headers:{
+              'Accept':'application/json',
+              'Content-Type':'application/json',
+            },
+            type:"POST",
+            url:"http://localhost:8080/api/cities",
+            data:JSON.stringify(newCity),
+            success:loadData
+          });
+        }
+        function edit(id){
+            let name=$('#name').val()
+            let gpa=$('#gpa').val()
+            let area=$('#area').val()
+            let country=$('#country').val()
+            let description=$('#description').val()
+            let population=$('#population').val()
+          let city={
+            "id": id,
+            "name": name,
+            "country": country,
+            "area": area,
+            "population": population,
+            "description": description,
+            "gpa": gpa
+          }
+          $.ajax({
+            headers:{
+              'Accept':'application/json',
+              'Content-Type':'application/json',
+            },
+            type:"PUT",
+            url:"http://localhost:8080/api/"+id,
+            data:JSON.stringify(city),
+            success:loadData
+
+          })
+
+        }
+        function showFormAdd(){
+          let str=`<form>
+                        <div class="mb-3">
+                          <label for="newname" class="form-label">Name</label>
+                          <input type="text" class="form-control" id="newname" aria-describedby="emailHelp" value="">
+                        </div>
+                        <div class="mb-3">
+                          <label for="newgpa" class="form-label">GPA</label>
+                          <input type="text" class="form-control" id="newgpa" aria-describedby="emailHelp" value="">
+                        </div>
+                        <div class="mb-3">
+                          <label for="newarea" class="form-label">Area</label>
+                          <input type="text" class="form-control" id="newarea" aria-describedby="emailHelp" value="">
+                        </div>
+                        <div class="mb-3">
+                          <label for="newcountry" class="form-label">Country</label>
+                          <input type="text" class="form-control" id="newcountry" aria-describedby="emailHelp" value="">
+                        </div>
+                        <div class="mb-3">
+                          <label for="newdescription" class="form-label">Description</label>
+                          <input type="text" class="form-control" id="newdescription" aria-describedby="emailHelp" value="">
+                        </div>
+                        <div class="mb-3">
+                          <label for="newpopulation" class="form-label">Population</label>
+                          <input type="text" class="form-control" id="newpopulation" aria-describedby="emailHelp" value="">
+                        </div>
+                        <a type="submit" class="btn btn-primary" onclick="add()">Create</a>
+                      </form>`
+                document.getElementById('listCity').innerHTML=str;
+        }
+        function listCity(data){
+          let str =`<thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Country</th>
+                                <th>Area</th>
+                                <th>Population</th>
+                                <th>GDA</th>
+                                <th>Description</th>
+                                <th colspan="2">Management</th>
+                            </tr>
+                                </thead>`
+          for (let i = 0; i < data.length; i++) {
+            str+=`
+                            <tr onclick="info(${data[i].id})">
+                                <td>${data[i].id}</td>
+                                <td>${data[i].name}</td>
+                                <td>${data[i].country}</td>
+                                <td>${data[i].area}</td>
+                                <td>${data[i].population}</td>
+                                <td>${data[i].gpa}</td>
+                                <td>${data[i].description}</td>
+                                <td><a class="btn btn-info btn-sm"onclick="showFormEdit(${data[i].id})">Edit</a></td>
+                                <td><a class="btn btn-danger btn-sm" onclick="deleteData(${data[i].id})">Delete</a></td>
+                            </tr> `,
+                            // console.log(${data[i].id})
+                            // console.log(${data[i].name})
+                            // console.log(${data[i].gpa})
+                            // console.log(${data[i].area})
+                            // console.log(${data[i].country})
+                            // console.log(${data[i].description})
+                            // console.log(${data[i].population})
+                    document.getElementById('listCity').innerHTML=str;
+          }
+        }
+        function getCountry(){
+          $.ajax({
+            type:"GET",
+            url:"https://apis.haravan.com/com/countries",
+            success:function (data){
+              console.log(data)
+            }
+          })
+        }
+    </script>
+</head>
+<body onload="loadData()">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <div>
+          <a onclick="getCountry()">Test</a>
+          <a class="h3 mb-3" onclick="loadPage()" style="text-decoration: none; color: black">
+            <img src="https://image.flaticon.com/icons/png/128/3135/3135961.png" height="35" width="35">  Home
+          </a>
+        </div>
+        <div>
+          <form class="d-flex">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="key">
+            <a class="btn btn-outline-success" type="submit" onclick="searchData()">
+              Search
+            </a></br>
+          </form>
+        </div>
+      </div>
+    </nav>
+    <div class="row">
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-outline-primary " style="margin-top: 40px" onclick="showFormAdd()">Create</button>
+      </div>
+      <div class="col-md-7">
+          <table class="table" id="listCity">
+
+          </table>
+
+      </div>
+      <div class="col-md-2">
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
